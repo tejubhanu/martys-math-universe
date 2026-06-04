@@ -1,250 +1,367 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Marty Universe Map</title>
+<title>Marty Universe Mission Engine</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
 
-body{
-    margin:0;
-    font-family:"Fredoka", sans-serif;
-    background: radial-gradient(circle at top, #0ea5e9, #0f172a);
-    color:white;
-    overflow-x:hidden;
+body {
+    margin: 0;
+    font-family: "Fredoka", sans-serif;
+    min-height: 100vh;
+    color: white;
+    transition: background 0.8s ease;
+}
+
+.container {
+    max-width: 850px;
+    margin: auto;
+    padding: 20px;
 }
 
 /* HEADER */
-.header{
-    text-align:center;
-    padding:30px 20px 10px;
+.header {
+    text-align: center;
+    margin-top: 10px;
 }
 
-.title{
-    font-size:2.4rem;
-    font-weight:600;
+.title {
+    font-size: 2rem;
+    font-weight: 600;
 }
 
-.subtitle{
-    opacity:0.8;
-}
-
-/* STATS BAR */
-.stats{
-    display:flex;
-    justify-content:center;
-    gap:20px;
-    margin-top:15px;
-    flex-wrap:wrap;
-}
-
-.stat{
-    background:rgba(255,255,255,0.12);
-    padding:12px 18px;
-    border-radius:14px;
+.story-box {
+    background: rgba(255,255,255,0.15);
+    padding: 18px;
+    border-radius: 16px;
+    margin-top: 15px;
     backdrop-filter: blur(10px);
 }
 
-/* AVATAR */
-.avatar{
-    text-align:center;
-    margin-top:20px;
-    font-size:3rem;
-    animation: float 3s ease-in-out infinite;
+/* PROGRESS */
+.progress-bar {
+    height: 16px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 15px;
 }
 
-@keyframes float{
-    0%,100%{transform:translateY(0);}
-    50%{transform:translateY(-10px);}
+.progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg,#facc15,#f97316);
+    transition: 0.3s;
 }
 
-/* MAP */
-.map{
-    max-width:1000px;
-    margin:40px auto;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:25px;
-    padding:20px;
+/* QUESTION CARD */
+.card {
+    background: white;
+    color: #111827;
+    margin-top: 20px;
+    padding: 28px;
+    border-radius: 22px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
 }
 
-/* PLANET CARD */
-.planet{
-    background:rgba(255,255,255,0.1);
-    border-radius:20px;
-    padding:20px;
-    text-align:center;
-    cursor:pointer;
-    transition:0.3s;
-    position:relative;
-    overflow:hidden;
-    border:2px solid rgba(255,255,255,0.15);
+.question {
+    font-size: 2.2rem;
+    margin: 20px 0;
 }
 
-.planet:hover{
-    transform:scale(1.05);
-    background:rgba(255,255,255,0.18);
+input {
+    font-size: 1.5rem;
+    padding: 10px;
+    width: 140px;
+    text-align: center;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
 }
 
-.planet.locked{
-    opacity:0.4;
-    filter:grayscale(1);
-    cursor:not-allowed;
+button {
+    margin-top: 15px;
+    padding: 12px 18px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
 }
 
-/* PLANET ICON */
-.icon{
-    font-size:3rem;
-    margin-bottom:10px;
+.check { background: #2563eb; color: white; }
+.next { background: #16a34a; color: white; display:none; }
+
+.feedback {
+    margin-top: 15px;
+    font-size: 1.1rem;
 }
 
-/* GLOW */
-.planet::after{
-    content:"";
-    position:absolute;
-    width:200px;
-    height:200px;
-    background:radial-gradient(circle, rgba(255,255,255,0.15), transparent);
-    top:-50px;
-    left:-50px;
-    animation: glow 6s infinite;
+/* HUD */
+.hud {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    opacity: 0.9;
 }
 
-@keyframes glow{
-    0%,100%{transform:translate(0,0);}
-    50%{transform:translate(20px,20px);}
-}
-
-/* WORLD COLORS */
-.rocket{ border-left:5px solid #38bdf8; }
-.numbera{ border-left:5px solid #22c55e; }
-.shadow{ border-left:5px solid #6b7280; }
-.robot{ border-left:5px solid #f97316; }
-.asteroid{ border-left:5px solid #a855f7; }
-.galaxy{ border-left:5px solid #06b6d4; }
+/* WORLD THEMES */
+.rocketbay { background: linear-gradient(180deg,#0ea5e9,#1e3a8a); }
+.numbera   { background: linear-gradient(180deg,#22c55e,#065f46); }
+.shadow     { background: linear-gradient(180deg,#4b5563,#111827); }
+.robot      { background: linear-gradient(180deg,#f97316,#7c2d12); }
+.asteroid   { background: linear-gradient(180deg,#a855f7,#1e1b4b); }
+.galaxy     { background: linear-gradient(180deg,#06b6d4,#0f172a); }
 
 </style>
 </head>
 
-<body>
+<body id="body">
 
-<div class="header">
-    <div class="title">🌌 Marty Universe Map</div>
-    <div class="subtitle">Travel through worlds. Master the galaxy.</div>
+<div class="container">
 
-    <div class="stats">
-        <div class="stat">⭐ XP: <span id="xp">0</span></div>
-        <div class="stat">🔥 Streak: <span id="streak">0</span></div>
-        <div class="stat">🏆 Level: <span id="level">Junior Scientist</span></div>
-    </div>
-</div>
+    <div class="header">
+        <div class="title" id="worldTitle">🚀 Loading World...</div>
 
-<div class="avatar" id="avatar">👨‍🚀</div>
+        <div class="story-box" id="storyText">
+            Preparing mission...
+        </div>
 
-<div class="map">
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
 
-    <div class="planet rocket" onclick="go('rocket',0)">
-        <div class="icon">🚀</div>
-        <h3>Rocket Bay</h3>
-        <p>Days 1–5</p>
-        <small>Basics & Launch</small>
+        <div id="counter">Question 1 / 50</div>
     </div>
 
-    <div class="planet numbera locked" id="p1" onclick="go('numbera',1)">
-        <div class="icon">🌍</div>
-        <h3>Planet Numbera</h3>
-        <p>Days 6–10</p>
+    <div class="card">
+
+        <div class="question" id="question">---</div>
+
+        <input type="number" id="answer" placeholder=""/>
+
+        <br/>
+
+        <button class="check" onclick="checkAnswer()">Check</button>
+        <button class="next" onclick="nextQuestion()">Next</button>
+
+        <div class="feedback" id="feedback"></div>
+
     </div>
 
-    <div class="planet shadow locked" id="p2" onclick="go('shadow',2)">
-        <div class="icon">🌑</div>
-        <h3>Shadow Patterns</h3>
-        <p>Days 11–15</p>
-    </div>
-
-    <div class="planet robot locked" id="p3" onclick="go('robot',3)">
-        <div class="icon">🛰️</div>
-        <h3>Robot City</h3>
-        <p>Days 16–20</p>
-    </div>
-
-    <div class="planet asteroid locked" id="p4" onclick="go('asteroid',4)">
-        <div class="icon">🌠</div>
-        <h3>Asteroid Belt</h3>
-        <p>Days 21–25</p>
-    </div>
-
-    <div class="planet galaxy locked" id="p5" onclick="go('galaxy',5)">
-        <div class="icon">🪐</div>
-        <h3>Inventor Galaxy</h3>
-        <p>Days 26–30</p>
+    <div class="hud">
+        <div>⭐ XP: <span id="xp">0</span></div>
+        <div>🧪 Marty Engine</div>
     </div>
 
 </div>
 
 <script>
 
-/* -------------------------
-   LOAD PROGRESS
---------------------------*/
+/* -----------------------------
+   1. GET WORLD FROM URL (FIX)
+------------------------------*/
 
-let data = JSON.parse(localStorage.getItem("martyProgress")) || {
-    xp: 0,
-    streak: 0,
-    unlockedWorlds: 1
+function getWorldFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("world") || "rocket";
+}
+
+/* -----------------------------
+   2. WORLDS CONFIG
+------------------------------*/
+
+const worlds = {
+    rocket: {
+        class: "rocketbay",
+        title: "🚀 Rocket Bay",
+        story: "Rod’s rocket is broken. Restore fuel power!",
+        difficulty: 1
+    },
+    numbera: {
+        class: "numbera",
+        title: "🌍 Planet Numbera",
+        story: "The Number Guardians need balance restored.",
+        difficulty: 1.2
+    },
+    shadow: {
+        class: "shadow",
+        title: "🌑 Shadow Patterns",
+        story: "A mysterious force scrambles number patterns.",
+        difficulty: 1.3
+    },
+    robot: {
+        class: "robot",
+        title: "🛰️ Robot City",
+        story: "Machines are failing. Fix them with multiplication.",
+        difficulty: 1.4
+    },
+    asteroid: {
+        class: "asteroid",
+        title: "🌠 Asteroid Belt",
+        story: "Fast asteroids require quick math thinking.",
+        difficulty: 1.5
+    },
+    galaxy: {
+        class: "galaxy",
+        title: "🪐 Inventor Galaxy",
+        story: "Final test: become Master Inventor.",
+        difficulty: 1.7
+    }
 };
 
-document.getElementById("xp").innerText = data.xp || 0;
-document.getElementById("streak").innerText = data.streak || 0;
+/* -----------------------------
+   3. INIT WORLD (FIX APPLIED)
+------------------------------*/
 
-/* LEVEL SYSTEM */
-function level(xp){
-    if(xp>2000) return "Master Inventor";
-    if(xp>1200) return "Rocket Engineer";
-    if(xp>600) return "Robot Builder";
-    if(xp>200) return "Math Explorer";
-    return "Junior Scientist";
+const worldKey = getWorldFromURL();
+const world = worlds[worldKey] || worlds["rocket"];
+
+document.body.classList.add(world.class);
+
+document.getElementById("worldTitle").innerText = world.title;
+document.getElementById("storyText").innerText = world.story;
+
+/* -----------------------------
+   4. GENERATOR (WORLD-AWARE)
+------------------------------*/
+
+function rand(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
 }
 
-document.getElementById("level").innerText = level(data.xp);
+function scale(n){
+    return Math.round(n * world.difficulty);
+}
 
-/* -------------------------
-   UNLOCK WORLDS
---------------------------*/
+function make(type){
 
-for(let i=1;i<=5;i++){
-    if(i < data.unlockedWorlds){
-        document.getElementById("p"+i).classList.remove("locked");
+    if(type==="warmup"){
+        let a=scale(rand(1,10)), b=scale(rand(1,10));
+        return {q:`${a} + ${b}`, a:a+b, xp:2};
     }
+
+    if(type==="core"){
+        let a=scale(rand(10,20));
+        let b=scale(rand(1,10));
+        let c=scale(rand(1,10));
+        return {q:`${a} + ${b} - ${c}`, a:a+b-c, xp:3};
+    }
+
+    if(type==="mult"){
+        let a=rand(2,10);
+        let b=rand(2,10);
+        return {q:`${a} × ${b}`, a:a*b, xp:4};
+    }
+
+    if(type==="ns"){
+        let a=scale(rand(10,25));
+        let b=scale(rand(1,10));
+        return {q:`__ + ${b} = ${a+b}`, a:a, xp:4};
+    }
+
+    if(type==="pat"){
+        let s=rand(2,8), st=rand(2,5);
+        return {q:`${s} ${s+st} ${s+2*st} ${s+3*st} __`, a:s+4*st, xp:5};
+    }
+
+    let a=rand(2,10), b=rand(2,10);
+    return {
+        q:`Rod has ${a} packs of ${b}. Total?`,
+        a:a*b,
+        xp:6
+    };
 }
 
-/* -------------------------
-   AVATAR EVOLUTION
---------------------------*/
+/* -----------------------------
+   5. BUILD MISSION (50 Qs)
+------------------------------*/
 
-let avatar = "👨‍🚀";
+const types=[
+...Array(10).fill("warmup"),
+...Array(10).fill("core"),
+...Array(10).fill("mult"),
+...Array(5).fill("ns"),
+...Array(5).fill("pat"),
+...Array(10).fill("think")
+];
 
-if(data.xp>2000) avatar="🤖🚀";
-else if(data.xp>1200) avatar="🧑‍🔬";
-else if(data.xp>600) avatar="👨‍🏭";
+const mission = types.map(t => make(t));
 
-document.getElementById("avatar").innerText = avatar;
+let i = 0;
+let xp = 0;
 
-/* -------------------------
-   NAVIGATION
---------------------------*/
+document.getElementById("question").innerText = mission[0].q;
 
-function go(world, index){
+/* -----------------------------
+   6. CHECK ANSWER
+------------------------------*/
 
-if(index >= data.unlockedWorlds){
-    alert("🔒 Complete earlier missions first!");
+function checkAnswer(){
+
+let val = Number(document.getElementById("answer").value);
+let q = mission[i];
+
+if(val === q.a){
+    xp += q.xp;
+
+    document.getElementById("feedback").innerHTML =
+        "✨ Correct! +" + q.xp + " XP";
+
+    document.getElementById("xp").innerText = xp;
+
+    document.querySelector(".next").style.display = "inline-block";
+}
+else{
+    document.getElementById("feedback").innerHTML =
+        "🤔 Not quite. Try again like a scientist.";
+}
+
+}
+
+/* -----------------------------
+   7. NEXT QUESTION
+------------------------------*/
+
+function nextQuestion(){
+
+i++;
+document.getElementById("answer").value = "";
+document.getElementById("feedback").innerHTML = "";
+
+if(i >= mission.length){
+    finish();
     return;
 }
 
-window.location.href = `mission.html?world=${world}`;
+document.getElementById("question").innerText = mission[i].q;
+
+document.getElementById("counter").innerText =
+`Question ${i+1} / 50`;
+
+document.getElementById("progress").style.width =
+(i / mission.length * 100) + "%";
+
+document.querySelector(".next").style.display = "none";
+
+}
+
+/* -----------------------------
+   8. FINISH
+------------------------------*/
+
+function finish(){
+
+document.querySelector(".card").innerHTML = `
+<h1>🎉 Mission Complete</h1>
+<p>${world.story}</p>
+<h2>Total XP: ${xp}</h2>
+<button onclick="location.href='index.html'">Return to Universe</button>
+`;
+
 }
 
 </script>
